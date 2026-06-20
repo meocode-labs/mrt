@@ -47,7 +47,7 @@ jobs:
         run: |
           ext=""
           if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
-          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o mrt_${{$matrix.goos}}_{{$matrix.goarch}}${ext} ./main.go
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -o mrt_${{ matrix.goos }}_${{ matrix.goarch }}${ext} ./main.go
       - uses: actions/upload-artifact@v4
         with:
           name: mrt-${{ matrix.goos }}-${{ matrix.goarch }}

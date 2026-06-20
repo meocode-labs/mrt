@@ -1,0 +1,129 @@
+name: Auto Release on Merge to Main
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+env:
+  GO_VERSION: '1.21'
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, '[release]')
+    outputs:
+      upload_url: ${{ steps.release.outputs.upload_url }}
+      tag: ${{ steps.version.outputs.TAG }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Determine version
+        id: version
+        run: |
+          TAG=v1.$(date +%Y%m%d%H%M%S)
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Tag
+        run: |
+          git tag ${{ steps.version.outputs.TAG }}
+          git push origin ${{ steps.version.outputs.TAG }}
+
+      - name: Create Release
+        id: release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.TAG }}
+          name: "MRT ${{ steps.version.outputs.TAG }}"
+          body: "Auto-generated release for merge to main"
+          generate_release_notes: true
+          draft: true
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+  build-release:
+    runs-on: ubuntu-latest
+    needs: create-release
+    strategy:
+      matrix:
+        goos: [darwin, linux, windows]
+        goarch: [amd64, arm64]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Build
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+        run: |
+          ext=""
+          if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
+          LDFLAGS="-s -w -X github.com/meocodelabs/mrt/cmd.Version=${TAG#v} -X github.com/meocodelabs/mrt/cmd.Commit=$(git rev-parse --short HEAD)"
+          GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "$LDFLAGS" -o mrt_${{ matrix.goos }}_${{ matrix.goarch }}${ext} ./main.go
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mrt-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: mrt_*
+
+  upload-assets:
+    runs-on: ubuntu-latest
+    needs: [create-release, build-release]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get latest tag
+        id: get_tag
+        run: |
+          TAG=$(git describe --tags --abbrev=0)
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Package binaries
+        run: |
+          cd artifacts
+          for dir in mrt-*/; do
+            if [ "${{ runner.os }}" = "Windows" ]; then
+              powershell -Command "Compress-Archive -Path '${dir}*' -DestinationPath '${dir}zip'"
+            else
+              tar -czf ${dir%/}.tar.gz ${dir%/}/
+            fi
+          done
+
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.create-release.outputs.tag }}
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          assets: artifacts/**/*.tar.gz,artifacts/**/*.zip
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
