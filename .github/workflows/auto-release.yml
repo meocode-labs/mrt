@@ -50,7 +50,7 @@ jobs:
           generate_release_notes: true
           draft: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
   build-release:
     runs-on: ubuntu-latest
@@ -126,4 +126,4 @@ jobs:
           upload_url: ${{ needs.create-release.outputs.upload_url }}
           assets: artifacts/**/*.tar.gz,artifacts/**/*.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
