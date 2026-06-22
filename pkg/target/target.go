@@ -144,9 +144,6 @@ func RenderTargetInfo(target string, profile Profile) string {
 		Foreground(lipgloss.Color("212")).
 		Bold(true).Render
 
-	metric := lipgloss.NewStyle().
-		Foreground(lipgloss.Color("245")).Render
-
 	value := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("10")).
 		Bold(true).Render

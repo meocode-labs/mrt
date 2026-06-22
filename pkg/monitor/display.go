@@ -2,6 +2,7 @@ package monitor
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/charmbracelet/lipgloss"
@@ -181,19 +182,3 @@ func formatInt(n int64) string {
 }
 
 const TOKEN_RATE = 0.00001
-
-func stringsReplicate(s string, count int) string {
-	var result string
-	for i := 0; i < count; i++ {
-		result += s
-	}
-	return result
-}
-
-type strings struct{}
-
-func (strings) Repeat(s string, count int) string {
-	return stringsReplicate(s, count)
-}
-
-var _strings strings

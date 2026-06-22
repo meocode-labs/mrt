@@ -63,13 +63,19 @@ terminal output. This enables transparent token reduction for all CLI commands.`
 				if err != nil {
 					return fmt.Errorf("failed to create %s: %w", rcFile, err)
 				}
-				defer f.Close()
+				defer func() { _ = f.Close() }()
 
 				if len(content) > 0 && !force {
-					f.Write(content)
-					f.WriteString(hook)
+					if _, err := f.Write(content); err != nil {
+						return fmt.Errorf("failed to write %s: %w", rcFile, err)
+					}
+					if _, err := f.WriteString(hook); err != nil {
+						return fmt.Errorf("failed to write %s: %w", rcFile, err)
+					}
 				} else {
-					f.WriteString(hook)
+					if _, err := f.WriteString(hook); err != nil {
+						return fmt.Errorf("failed to write %s: %w", rcFile, err)
+					}
 				}
 
 				fmt.Printf("%s Shell hook installed to %s\n", successIcon, codeStyle.Render(rcFile))
@@ -102,10 +108,10 @@ func detectShell() string {
 
 func getRCFile(shell string) string {
 	home, _ := os.UserHomeDir()
-	switch {
-	case shell == "zsh":
+	switch shell {
+	case "zsh":
 		return home + "/.zshrc"
-	case shell == "fish":
+	case "fish":
 		return home + "/.config/fish/config.fish"
 	default:
 		return home + "/.bashrc"
@@ -139,8 +145,6 @@ type TargetCmd struct {
 	Name    string
 	Profile string
 }
-
-var targetList []TargetCmd
 
 var targetCmd = &cobra.Command{
 	Use:   "target",
@@ -196,8 +200,14 @@ var targetSetCmd = &cobra.Command{
 		home, _ := os.UserHomeDir()
 		configPath := home + "/.mrt/config"
 
-		os.MkdirAll(configPath, 0755)
-		os.WriteFile(configPath+"/target", []byte(target), 0644)
+		if err := os.MkdirAll(configPath, 0755); err != nil {
+			fmt.Printf("%s Failed to create config directory: %v\n", warnIcon, err)
+			return
+		}
+		if err := os.WriteFile(configPath+"/target", []byte(target), 0644); err != nil {
+			fmt.Printf("%s Failed to write target config: %v\n", warnIcon, err)
+			return
+		}
 
 		fmt.Printf("%s Active target set to %s\n", successIcon, codeStyle.Render(target))
 		fmt.Printf("   Profile: %s\n", descStyle.Render(getTargetProfile(target)))
@@ -348,7 +358,7 @@ func renderGainDashboard(stats GainResult, live bool, since string) {
 }
 
 func runDashboard(compact bool) {
-	exec.Command("which", "tea").Run()
+	_ = exec.Command("which", "tea").Run()
 
 	fmt.Println()
 	fmt.Println(meoStyle.Render("╔══════════════════════════════════════════════════╗"))
@@ -401,5 +411,3 @@ func runDashboard(compact bool) {
 
 	fmt.Printf("  Press %s to exit\n", descStyle.Render("Ctrl+C"))
 }
-
-var errorStyle2 = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))

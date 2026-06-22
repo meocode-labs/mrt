@@ -15,7 +15,6 @@ type Compressor struct {
 	tokenCount   int64
 	lineCount    int64
 	duplicateCnt int64
-	ansiRegex    *regexp.Regexp
 	config       CompressionConfig
 }
 
@@ -40,7 +39,6 @@ var (
 	ansiEscapeRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
 	pathRegex       = regexp.MustCompile(`/home/[^/\s]+`)
 	progressRegex   = regexp.MustCompile(`(\d+)%`)
-	duplicateTracker sync.Map
 )
 
 const (
@@ -70,7 +68,7 @@ func (c *Compressor) Compress(input string) (string, CompressionResult) {
 	result.LinesRemoved = c.lineCount
 	result.TokensRemoved = c.estimateTokensRemoved(input, compressedLines)
 
-	output := c.joinLines(compressedLines)
+	output := strings.Join(compressedLines, "\n")
 	result.CompressedLen = len(output)
 
 	if originalLen > 0 {
@@ -104,7 +102,7 @@ func (c *Compressor) processLines(lines []string) []string {
 
 		if c.config.RemoveDupLines {
 			normalized := c.normalizeForDedup(processed)
-			if count, exists := seen[normalized]; exists {
+			if _, exists := seen[normalized]; exists {
 				seen[normalized]++
 				c.duplicateCnt++
 				continue
