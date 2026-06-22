@@ -1,129 +1,172 @@
-name: Auto Release on Merge to Main
+name: Auto Release
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+      - master
 
 permissions:
   contents: write
 
-env:
-  GO_VERSION: '1.21'
-
 jobs:
-  create-release:
+  release:
+    name: Build, Release and Publish
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, '[release]')
-    outputs:
-      upload_url: ${{ steps.release.outputs.upload_url }}
-      tag: ${{ steps.version.outputs.TAG }}
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: '1.21'
 
-      - name: Determine version
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
+
+      - name: Read version from package.json
         id: version
         run: |
-          TAG=v1.$(date +%Y%m%d%H%M%S)
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
-          echo "DATE=$(date +%Y-%m-%d)" >> $GITHUB_OUTPUT
+          VERSION=$(node -p "require('./package.json').version")
+          TAG="v${VERSION}"
+          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "Will release as ${TAG}"
 
-      - name: Create GitHub Tag
+      - name: Check if tag already exists
+        id: check_tag
         run: |
+          if git rev-parse "${{ steps.version.outputs.TAG }}" >/dev/null 2>&1; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "Tag ${{ steps.version.outputs.TAG }} already exists, skipping release"
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Git Tag
+        if: steps.check_tag.outputs.exists == 'false'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           git tag ${{ steps.version.outputs.TAG }}
           git push origin ${{ steps.version.outputs.TAG }}
 
-      - name: Create Release
-        id: release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ steps.version.outputs.TAG }}
-          name: "MRT ${{ steps.version.outputs.TAG }}"
-          body: "Auto-generated release for merge to main"
-          generate_release_notes: true
-          draft: true
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-
-  build-release:
-    runs-on: ubuntu-latest
-    needs: create-release
-    strategy:
-      matrix:
-        goos: [darwin, linux, windows]
-        goarch: [amd64, arm64]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Get latest tag
-        id: get_tag
-        run: |
-          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
-
-      - name: Build
+      - name: Build binaries
+        if: steps.check_tag.outputs.exists == 'false'
+        strategy:
+          matrix:
+            goos: [darwin, linux, windows]
+            goarch: [amd64, arm64]
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
         run: |
           ext=""
           if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
-          LDFLAGS="-s -w -X github.com/meocodelabs/mrt/cmd.Version=${TAG#v} -X github.com/meocodelabs/mrt/cmd.Commit=$(git rev-parse --short HEAD)"
+          LDFLAGS="-s -w -X github.com/meocodelabs/mrt/cmd.Version=${{ steps.version.outputs.VERSION }} -X github.com/meocodelabs/mrt/cmd.Commit=$(git rev-parse --short HEAD)"
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "$LDFLAGS" -o mrt_${{ matrix.goos }}_${{ matrix.goarch }}${ext} ./main.go
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: mrt-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: mrt_*
-
-  upload-assets:
-    runs-on: ubuntu-latest
-    needs: [create-release, build-release]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-
-      - name: Get latest tag
-        id: get_tag
+      - name: Generate release notes
+        if: steps.check_tag.outputs.exists == 'false'
+        id: notes
         run: |
-          TAG=$(git describe --tags --abbrev=0)
-          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          PREV_TAG=$(git tag --sort=-version:refname | sed -n '2p')
 
-      - name: Package binaries
-        run: |
-          cd artifacts
-          for dir in mrt-*/; do
-            if [ "${{ runner.os }}" = "Windows" ]; then
-              powershell -Command "Compress-Archive -Path '${dir}*' -DestinationPath '${dir}zip'"
+          if [ -n "$PREV_TAG" ]; then
+            RANGE="${PREV_TAG}..HEAD"
+          else
+            RANGE=""
+          fi
+
+          {
+            echo "## meo-reduce-token (mrt) v${VERSION}"
+            echo ""
+            echo "**Release date:** $(date -u '+%Y-%m-%d %H:%M UTC')"
+            echo ""
+            echo "### Downloads"
+            echo ""
+            echo "| Platform | File |"
+            echo "|----------|------|"
+            echo "| Windows  | \`mrt_windows_amd64.exe\` / \`mrt_windows_arm64.exe\` |"
+            echo "| macOS    | \`mrt_darwin_amd64\` / \`mrt_darwin_arm64\` |"
+            echo "| Linux    | \`mrt_linux_amd64\` / \`mrt_linux_arm64\` |"
+            echo ""
+            echo "### Installation"
+            echo ""
+            echo '```bash'
+            echo "# npm (cross-platform)"
+            echo "npm install -g meo-reduce-token"
+            echo ""
+            echo "# Static binary"
+            echo "chmod +x mrt_darwin_amd64 && ./mrt_darwin_amd64 --help"
+            echo '```'
+            echo ""
+            echo "### What's New"
+            echo ""
+
+            if [ -n "$RANGE" ]; then
+              echo "**Commits since ${PREV_TAG}:**"
+              echo ""
+              git log "${RANGE}" --pretty=format:"- %s (%h) — %an" --no-merges
             else
-              tar -czf ${dir%/}.tar.gz ${dir%/}/
+              echo "**Initial release:**"
+              echo ""
+              git log --pretty=format:"- %s (%h) — %an" --no-merges
             fi
-          done
+            echo ""
+            echo ""
+            echo "### Statistics"
+            echo ""
 
-      - name: Upload to Release
+            if [ -n "$RANGE" ]; then
+              STATS=$(git diff --stat "${RANGE}")
+            else
+              STATS=$(git log --pretty=format: --shortstat | head -1)
+            fi
+            echo '```'
+            echo "${STATS}"
+            echo '```'
+            echo ""
+            echo "---"
+            echo "_Auto-generated by GitHub Actions_"
+          } > release_notes.md
+
+          cat release_notes.md
+          echo "notes_file=release_notes.md" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        if: steps.check_tag.outputs.exists == 'false'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ needs.create-release.outputs.tag }}
-          upload_url: ${{ needs.create-release.outputs.upload_url }}
-          assets: artifacts/**/*.tar.gz,artifacts/**/*.zip
+          tag_name: ${{ steps.version.outputs.TAG }}
+          name: meo-reduce-token v${{ steps.version.outputs.VERSION }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            mrt_darwin_amd64
+            mrt_darwin_arm64
+            mrt_linux_amd64
+            mrt_linux_arm64
+            mrt_windows_amd64.exe
+            mrt_windows_arm64.exe
+          if-no-files-found: ignore
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
+
+      - name: Publish to npm
+        if: steps.check_tag.outputs.exists == 'false'
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
