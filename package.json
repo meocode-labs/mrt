@@ -30,7 +30,7 @@
   },
   "bugs": {
     "url": "https://github.com/meocodelabs/mrt/issues"
-  ],
+  },
   "homepage": "https://github.com/meocodelabs/mrt#readme",
   "main": "install.js",
   "bin": {
