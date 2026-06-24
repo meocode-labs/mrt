@@ -84,7 +84,7 @@ The formula lives in this repo at `homebrew-tap/Formula/mrt.rb` (see
 curl -fsSL https://raw.githubusercontent.com/meocode-labs/mrt/main/install.sh | bash
 
 # Override install location or pin a version:
-MRT_INSTALL_DIR=$HOME/bin MRT_VERSION=v1.1.0 \
+MRT_INSTALL_DIR=$HOME/bin MRT_VERSION=v1.2.0 \
   curl -fsSL https://raw.githubusercontent.com/meocode-labs/mrt/main/install.sh | bash
 ```
 
