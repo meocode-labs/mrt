@@ -15,7 +15,9 @@ class Mrt < Formula
       -X github.com/meocode-labs/mrt/cmd.Version=#{version}
       -X github.com/meocode-labs/mrt/cmd.Commit=#{tap.user}
     ]
-    system "go", "build", *std_go_args(ldflags: ldflags), "./main.go"
+    # -o mrt is required: `go build ./main.go` defaults to a binary
+    # named `main`, but bin.install below expects a file called `mrt`.
+    system "go", "build", "-o", "mrt", *std_go_args(ldflags: ldflags), "./main.go"
     bin.install "mrt" => "meo"
   end
 
