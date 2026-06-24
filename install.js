@@ -76,7 +76,28 @@ async function install() {
   fs.chmodSync(tempPath, 0o755);
   fs.renameSync(tempPath, destPath);
 
-  console.log(`[meo-reduce-token] Installed ${binaryName} successfully.`);
+  const banner = `
+╔══════════════════════════════════════════════════╗
+║                                                  ║
+║   ███╗   ███╗██████╗ ████████╗                  ║
+║   ████╗ ████║██╔══██╗╚══██╔══╝                  ║
+║   ██╔████╔██║██████╔╝   ██║                     ║
+║   ██║╚██╔╝██║██╔══██╗   ██║                     ║
+║   ██║ ╚═╝ ██║██║  ██║   ██║                     ║
+║   ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝                     ║
+║                                                  ║
+║   Meo Reduce Token · v${VERSION}                      ║
+║   opencode · claude-code · copilot · cursor      ║
+║                                                  ║
+╚══════════════════════════════════════════════════╝
+`;
+
+  console.log(banner);
+  console.log(`  ✓ Installed ${binaryName} v${VERSION} successfully\n`);
+  console.log('  Get started:');
+  console.log('    meo init                    # Install shell hook');
+  console.log('    meo target set opencode     # Configure for opencode.io');
+  console.log('    meo --help                  # Show all commands\n');
 }
 
 install().catch((error) => {

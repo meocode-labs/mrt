@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/spf13/cobra"
@@ -25,29 +26,85 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "meo",
 	Short: fmt.Sprintf("%s ✦ Meo Reduce Token (MRT)", boldStyle.Render("meo")),
-	Long: `
-╔══════════════════════════════════════════════════════════════╗
-║  ██████╗ ██╗   ██╗███╗   ██╗ ██████╗ ███████╗ ██████╗ ███╗   ██╗║
-║  ██╔══██╗██║   ██║████╗  ██║██╔═══██╗██╔════╝██╔═══██╗████╗  ██║║
-║  ██║  ██║██║   ██║██╔██╗ ██║██║   ██║███████╗██║   ██║██╔██╗ ██║║
-║  ██║  ██║██║   ██║██║╚██╗██║██║   ██║╚════██║██║   ██║██║╚██╗██║║
-║  ██████╔╝╚██████╔╝██║ ╚████║╚██████╔╝███████║╚██████╔╝██║ ╚████║║
-║  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝  ╚═══╝║
-║                                                              ║
-║  %s  │  %s  │  %s           ║
-║                                                              ║
-╚══════════════════════════════════════════════════════════════╝
+	Long: `Meo Reduce Token (MRT) is a CLI tool that strips ANSI noise, dedupes
+repetitive log lines, and collapses verbose paths so terminal output
+costs fewer tokens when pasted into AI coding agents.
 
-A powerful token reduction tool for AI-assisted development.
-Reduce terminal output noise and save tokens while coding.
+Supported targets:
+  opencode      opencode.io engine           (high compression, code syntax)
+  claude-code   Claude Code (Anthropic)       (medium compression, reasoning)
+  copilot       GitHub Copilot CLI            (low compression, suggestions)
+  cursor        Cursor AI IDE                 (high compression, code syntax)
+  default       Generic / balanced
 
 Type 'meo --help' for available commands.`,
 	DisableAutoGenTag: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("\n%s Version %s (commit: %s)\n", infoStyle.Render("MRT"), successStyle.Render(Version), Commit)
-		fmt.Printf("Developed by %s  |  meocode.com\n\n", infoStyle.Render(MeoAuthor))
-		fmt.Printf("Usage %s for available commands.\n", infoStyle.Render("meo --help"))
+		printLogo(Version)
+		fmt.Println()
+		fmt.Printf("Developed by %s  |  meocode.com\n", infoStyle.Render(MeoAuthor))
+		fmt.Printf("Usage %s for available commands.\n\n", infoStyle.Render("meo --help"))
 	},
+}
+
+const (
+	bannerInnerWidth = 48 // box interior, between the two ║
+	bannerLeftPad    = 3  // consistent left padding inside the box
+)
+
+// printLogo renders the MRT opening banner. Each row is built explicitly
+// so the right border always lines up with the left, even when the
+// version string changes length.
+func printLogo(version string) {
+	bannerStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("212")).
+			Bold(true)
+
+	subtitleStyle := lipgloss.NewStyle().
+			Foreground(lipgloss.Color("245"))
+
+	emptyRow := "║" + strings.Repeat(" ", bannerInnerWidth) + "║"
+	borderTop := "╔" + strings.Repeat("═", bannerInnerWidth) + "╗"
+	borderBot := "╚" + strings.Repeat("═", bannerInnerWidth) + "╝"
+
+	artRows := []string{
+		"║   ███╗   ███╗██████╗ ████████╗                  ║",
+		"║   ████╗ ████║██╔══██╗╚══██╔══╝                  ║",
+		"║   ██╔████╔██║██████╔╝   ██║                     ║",
+		"║   ██║╚██╔╝██║██╔══██╗   ██║                     ║",
+		"║   ██║ ╚═╝ ██║██║  ██║   ██║                     ║",
+		"║   ╚═╝     ╚═╝╚═╝  ╚═╝   ╚═╝                     ║",
+	}
+
+	title := "Meo Reduce Token · v" + version
+	targets := "opencode · claude-code · copilot · cursor"
+	titleRow := buildContentRow(title)
+	targetsRow := buildContentRow(targets)
+
+	rows := []string{borderTop, emptyRow}
+	rows = append(rows, artRows...)
+	rows = append(rows, emptyRow, titleRow, targetsRow, emptyRow, borderBot)
+
+	for _, r := range rows {
+		if r == titleRow || r == targetsRow {
+			fmt.Println(subtitleStyle.Render(r))
+		} else {
+			fmt.Println(bannerStyle.Render(r))
+		}
+	}
+}
+
+// buildContentRow assembles a banner row with left-padded content and
+// right-padded fill so the closing ║ always lands at the same column.
+func buildContentRow(text string) string {
+	left := strings.Repeat(" ", bannerLeftPad)
+	contentWidth := bannerInnerWidth - bannerLeftPad
+	w := lipgloss.Width(text)
+	if w >= contentWidth {
+		return "║" + left + text[:contentWidth] + "║"
+	}
+	right := strings.Repeat(" ", contentWidth-w)
+	return "║" + left + text + right + "║"
 }
 
 func Execute() {
