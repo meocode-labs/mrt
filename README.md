@@ -95,6 +95,10 @@ The installer script lives at [`install.sh`](install.sh) in this repo.
 
 ```bash
 go install github.com/meocode-labs/mrt@latest
+# go install names the binary after the module's last path component
+# (mrt), unlike the npm/curl/brew installs which name it meo. Rename
+# or symlink for a consistent experience:
+mv "$(go env GOPATH)/bin/mrt" "$(go env GOPATH)/bin/meo"
 ```
 
 ---
