@@ -31,6 +31,7 @@ Developed by [Meo Code Labs](https://meocode.com) | Maintained by [penadidik](ht
 - **Cursor** - High compression for Cursor AI IDE
 - **Claude Code** - Medium compression, preserve reasoning chains
 - **GitHub Copilot** - Low compression, keep suggestions intact
+- **OpenCode** - High compression for [opencode.io](https://opencode.io) engine, preserve code syntax and reasoning
 - **Generic** - Balanced profile for any AI tool
 
 ### 📊 Live Dashboard
@@ -107,6 +108,7 @@ meo init
 meo target set cursor        # For Cursor AI
 meo target set claude-code   # For Claude Code
 meo target set copilot       # For GitHub Copilot
+meo target set opencode      # For OpenCode (opencode.io)
 meo target info              # Show current config
 ```
 

@@ -65,6 +65,17 @@ var Profiles = map[string]Profile{
 		KeepSuggestions:  false,
 		KeepSyntax:       true,
 	},
+	"opencode": {
+		Name:             "OpenCode",
+		StripANSI:        true,
+		RemoveDupLines:   true,
+		CollapsePaths:    true,
+		Skeletonize:      false,
+		CompressionLevel: 0.75,
+		KeepReasoning:    true,
+		KeepSuggestions:  false,
+		KeepSyntax:       true,
+	},
 }
 
 type Manager struct {

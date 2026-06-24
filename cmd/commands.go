@@ -156,6 +156,7 @@ is consuming your terminal output.`,
   meo target set cursor         # Set target to Cursor
   meo target set claude-code    # Set target to Claude Code
   meo target set copilot        # Set target to GitHub Copilot
+  meo target set opencode       # Set target to OpenCode
   meo target info               # Show current target info`,
 }
 
@@ -171,6 +172,7 @@ var targetListCmd = &cobra.Command{
 			{"cursor", "Cursor AI IDE", "High compression, preserve code syntax"},
 			{"claude-code", "Claude Code (Anthropic)", "Medium compression, preserve reasoning"},
 			{"copilot", "GitHub Copilot CLI", "Low compression, preserve suggestions"},
+			{"opencode", "OpenCode (opencode.io)", "High compression, preserve code syntax and reasoning"},
 			{"default", "Generic / Other", "Balanced compression for all tools"},
 		}
 
@@ -187,13 +189,13 @@ var targetSetCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		validTargets := map[string]bool{
-			"cursor": true, "claude-code": true, "copilot": true, "default": true,
+			"cursor": true, "claude-code": true, "copilot": true, "opencode": true, "default": true,
 		}
 
 		target := args[0]
 		if !validTargets[target] {
 			fmt.Printf("%s Unknown target: %s\n", errorStyle.Render("Error:"), codeStyle.Render(target))
-			fmt.Printf("Valid targets: cursor, claude-code, copilot, default\n")
+			fmt.Printf("Valid targets: cursor, claude-code, copilot, opencode, default\n")
 			return
 		}
 
@@ -241,6 +243,7 @@ func getTargetProfile(target string) string {
 		"cursor":      "High (80% reduction, preserve syntax)",
 		"claude-code": "Medium (60% reduction, preserve reasoning)",
 		"copilot":     "Low (40% reduction, preserve suggestions)",
+		"opencode":    "High (75% reduction, preserve syntax and reasoning)",
 		"default":     "Balanced (70% reduction)",
 	}
 	if p, ok := profiles[target]; ok {
