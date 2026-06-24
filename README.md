@@ -61,6 +61,20 @@ Developed by [Meo Code Labs](https://meocode.com) | Maintained by [penadidik](ht
 
 ## 🚀 Quick Start
 
+> ⚠️ **Only one installation method should be active at a time.** All four
+> install methods below produce a binary named `meo`, so the first one in
+> your `PATH` wins. If `meo target set opencode` says
+> `Unknown target: opencode`, you are probably running an older copy from
+> a different install method. Check with `which meo` and uninstall the
+> other copy:
+>
+> ```bash
+> which meo                          # find the active binary
+> npm uninstall -g meo-reduce-token  # if it's the npm copy
+> brew uninstall mrt                 # if it's the brew copy
+> rm ~/.local/bin/meo                # if it's the curl copy
+> ```
+
 ### Installation via npm (Recommended)
 
 ```bash
