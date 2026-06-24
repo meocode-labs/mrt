@@ -71,19 +71,24 @@ meo --help
 ### Installation via Homebrew
 
 ```bash
-brew install meocode-labs/tap/mrt
+brew install --formula https://raw.githubusercontent.com/meocode-labs/mrt/main/homebrew-tap/Formula/mrt.rb
 ```
+
+The formula lives in this repo at `homebrew-tap/Formula/mrt.rb` (see
+[`homebrew-tap/README.md`](homebrew-tap/README.md) for the update procedure).
 
 ### Installation via cURL
 
 ```bash
-# macOS/Linux
+# macOS/Linux (auto-detects OS/arch, installs to /usr/local/bin)
 curl -fsSL https://raw.githubusercontent.com/meocode-labs/mrt/main/install.sh | bash
 
-# Direct binary download
-curl -fsSL https://github.com/meocode-labs/mrt/releases/latest/download/mrt_darwin_arm64.tar.gz | tar -xz
-sudo mv meo /usr/local/bin/
+# Override install location or pin a version:
+MRT_INSTALL_DIR=$HOME/bin MRT_VERSION=v1.1.0 \
+  curl -fsSL https://raw.githubusercontent.com/meocode-labs/mrt/main/install.sh | bash
 ```
+
+The installer script lives at [`install.sh`](install.sh) in this repo.
 
 ### Installation via Go
 
