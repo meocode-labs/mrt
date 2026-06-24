@@ -13,6 +13,11 @@
 set -euo pipefail
 
 REPO="meocode-labs/mrt"
+# Source asset prefix on GitHub releases: the auto-release workflow
+# produces binaries named mrt_<os>_<arch> (e.g. mrt_darwin_arm64),
+# regardless of the installed binary name. We rename to "$BINARY" on
+# install so the final command is `meo`, not `mrt`.
+ASSET_PREFIX="mrt"
 BINARY="meo"
 
 # -------- helpers -----------------------------------------------------------
@@ -73,9 +78,12 @@ if [[ -z "$VERSION" ]]; then
   VERSION="$(resolve_latest_version)"
   [[ -n "$VERSION" ]] || die "could not determine latest version"
 fi
+# Normalize: accept "1.2.0" or "v1.2.0" — strip any leading "v" so URL
+# construction below always produces exactly one "v" prefix.
+VERSION="${VERSION#v}"
 
 INSTALL_DIR="${MRT_INSTALL_DIR:-/usr/local/bin}"
-ASSET="${BINARY}_${OS}_${ARCH}${EXT}"
+ASSET="${ASSET_PREFIX}_${OS}_${ARCH}${EXT}"
 URL="https://github.com/${REPO}/releases/download/v${VERSION}/${ASSET}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
@@ -105,10 +113,15 @@ fi
 
 # -------- verify ------------------------------------------------------------
 
-if ! command -v "$BINARY" >/dev/null 2>&1; then
-  warn "${BINARY} installed to ${TARGET} but is not on PATH"
-  warn "add ${INSTALL_DIR} to your PATH, or call ${TARGET} directly"
-else
-  say "✓ ${BINARY} $(command -v "$BINARY") is ready"
-  "$BINARY" --version 2>/dev/null || true
+# Always report the path we just installed to. If a different meo is
+# already on PATH (e.g. from npm), the user can decide whether to
+# adjust PATH or uninstall the old copy.
+say "✓ ${BINARY} installed to ${TARGET}"
+"${TARGET}" --version 2>/dev/null || true
+
+if ! command -v "$BINARY" >/dev/null 2>&1 \
+   || [[ "$(command -v "$BINARY")" != "$TARGET" ]]; then
+  warn "${TARGET} is not the meo on PATH"
+  warn "  on PATH: $(command -v "$BINARY" 2>/dev/null || echo '(none)')"
+  warn "  add ${INSTALL_DIR} to PATH, or call ${TARGET} directly"
 fi

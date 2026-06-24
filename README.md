@@ -71,11 +71,12 @@ meo --help
 ### Installation via Homebrew
 
 ```bash
-brew install --formula https://raw.githubusercontent.com/meocode-labs/mrt/main/homebrew-tap/Formula/mrt.rb
+brew tap meocode-labs/mrt https://github.com/meocode-labs/mrt
+brew install mrt
 ```
 
-The formula lives in this repo at `homebrew-tap/Formula/mrt.rb` (see
-[`homebrew-tap/README.md`](homebrew-tap/README.md) for the update procedure).
+The formula lives in this repo at [`Formula/mrt.rb`](Formula/mrt.rb) (see
+[`Formula/README.md`](Formula/README.md) for the maintainer update procedure).
 
 ### Installation via cURL
 
