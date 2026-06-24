@@ -55,7 +55,7 @@ jobs:
         run: |
           ext=""
           if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
-          LDFLAGS="-s -w -X github.com/meocodelabs/mrt/cmd.Version=${VERSION} -X github.com/meocodelabs/mrt/cmd.Commit=$(git rev-parse --short HEAD)"
+          LDFLAGS="-s -w -X github.com/meocode-labs/mrt/cmd.Version=${VERSION} -X github.com/meocode-labs/mrt/cmd.Commit=$(git rev-parse --short HEAD)"
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "$LDFLAGS" -o mrt_${{ matrix.goos }}_${{ matrix.goarch }}${ext} ./main.go
 
       - name: Upload artifact

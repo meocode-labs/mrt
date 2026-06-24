@@ -1,4 +1,4 @@
-module github.com/meocodelabs/mrt
+module github.com/meocode-labs/mrt
 
 go 1.21
 

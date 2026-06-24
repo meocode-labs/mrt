@@ -3,133 +3,84 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const http = require('http');
 const os = require('os');
 
-const VERSION = process.env.npm_package_version || '1.0.0';
-const REPO = 'meocodelabs/mrt';
-const API_URL = `https://api.github.com/repos/${REPO}/releases/latest`;
+const { version: VERSION } = require('./package.json');
+const REPO = 'meocode-labs/mrt';
 
-const PLATFORMS = {
-  darwin: { arch: { x64: 'apple-darwin-x64', arm64: 'apple-darwin-arm64' } },
-  linux: { arch: { x64: 'unknown-linux-musl-x64', arm64: 'unknown-linux-musl-arm64' } },
-  win32: { arch: { x64: 'pc-windows-x64', arm64: 'pc-windows-arm64' } }
-};
-
-function getPlatform() {
+function getAssetName() {
   const platform = os.platform();
-  const arch = os.arch();
-  
-  const platformKey = PLATFORMS[platform];
-  if (!platformKey) {
-    console.error(`Unsupported platform: ${platform}`);
-    process.exit(1);
-  }
-  
-  let archKey = arch === 'arm64' ? 'arm64' : 'x64';
-  if (!platformKey.arch[archKey]) {
-    archKey = 'x64';
-  }
-  
-  return {
-    platform,
-    arch: archKey,
-    binaryName: platform === 'win32' ? 'meo.exe' : 'meo',
-    compressedArch: platformKey.arch[archKey]
-  };
+  const arch = os.arch() === 'arm64' ? 'arm64' : 'amd64';
+
+  if (platform === 'darwin') return `mrt_darwin_${arch}`;
+  if (platform === 'linux') return `mrt_linux_${arch}`;
+  if (platform === 'win32') return `mrt_windows_${arch}.exe`;
+
+  throw new Error(`Unsupported platform: ${platform} ${os.arch()}`);
 }
 
-function getBinaryUrl(platform) {
-  return `https://github.com/${REPO}/releases/download/v${VERSION}/mrt_v${VERSION}_${platform.compressedArch}.tar.gz`;
+function getBinaryName() {
+  return os.platform() === 'win32' ? 'meo.exe' : 'meo';
 }
 
-function downloadFile(url, dest) {
+function download(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest);
-    const protocol = url.startsWith('https') ? https : http;
-    
-    const request = protocol.get(url, { headers: { 'User-Agent': 'meo-npm-installer' } }, (response) => {
-      if (response.statusCode === 302 || response.statusCode === 301) {
-        downloadFile(response.headers.location, dest).then(resolve).catch(reject);
-        return;
-      }
-      
-      if (response.statusCode !== 200) {
-        reject(new Error(`Failed to download: ${response.statusCode}`));
-        return;
-      }
-      
-      response.pipe(file);
-      file.on('finish', () => {
-        file.close();
-        resolve();
-      });
-    });
-    
-    request.on('error', reject);
-  });
-}
 
-function extractTarGz(tarPath, destDir) {
-  const { spawn } = require('child_process');
-  
-  return new Promise((resolve, reject) => {
-    const tar = spawn('tar', ['-xzf', tarPath, '-C', destDir]);
-    tar.on('close', (code) => {
-      if (code === 0) resolve();
-      else reject(new Error(`tar exited with code ${code}`));
-    });
-    tar.on('error', reject);
+    const request = (currentUrl) => {
+      https.get(currentUrl, { headers: { 'User-Agent': 'meo-reduce-token-installer' } }, (response) => {
+        if (response.statusCode === 301 || response.statusCode === 302) {
+          request(response.headers.location);
+          return;
+        }
+
+        if (response.statusCode !== 200) {
+          file.close();
+          fs.unlink(dest, () => {});
+          reject(new Error(`Download failed: HTTP ${response.statusCode} for ${currentUrl}`));
+          return;
+        }
+
+        response.pipe(file);
+        file.on('finish', () => {
+          file.close(resolve);
+        });
+      }).on('error', (error) => {
+        file.close();
+        fs.unlink(dest, () => {});
+        reject(error);
+      });
+    };
+
+    request(url);
   });
 }
 
 async function install() {
-  console.log('╔══════════════════════════════════════════════════╗');
-  console.log('║  ✦ Meo Reduce Token (MRT) Installer ✦          ║');
-  console.log('╚══════════════════════════════════════════════════╝\n');
-  
-  console.log(`Platform: ${os.platform()} ${os.arch()}`);
-  console.log(`Version: ${VERSION}\n`);
-  
-  const platform = getPlatform();
-  const url = getBinaryUrl(platform);
-  
-  console.log(`Downloading: ${url}\n`);
-  
-  const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'mrt-'));
-  const tarPath = path.join(tempDir, 'mrt.tar.gz');
-  const binDir = path.join(tempDir, 'bin');
-  
-  try {
-    await downloadFile(url, tarPath);
-    fs.mkdirSync(binDir, { recursive: true });
-    
-    console.log('Extracting...');
-    await extractTarGz(tarPath, binDir);
-    
-    const extractedFile = path.join(binDir, platform.binaryName);
-    const targetPath = path.join(process.env.PREFIX || '/usr/local', 'bin', platform.binaryName);
-    const targetDir = path.dirname(targetPath);
-    
-    if (!fs.existsSync(targetDir)) {
-      fs.mkdirSync(targetDir, { recursive: true });
-    }
-    
-    fs.copyFileSync(extractedFile, targetPath);
-    fs.chmodSync(targetPath, 0o755);
-    
-    console.log(`\n✓ Installed to: ${targetPath}`);
-    console.log('\nRun "meo --help" to get started!\n');
-    
-  } catch (error) {
-    console.error(`\n✗ Installation failed: ${error.message}`);
-    console.error('\nYou can try installing manually:');
-    console.error(`  curl -fsSL ${url} | tar -xz`);
-    console.error(`  mv meo /usr/local/bin/\n`);
-    process.exit(1);
-  } finally {
-    fs.rmSync(tempDir, { recursive: true, force: true });
+  if (process.env.MRT_SKIP_POSTINSTALL === '1') {
+    return;
   }
+
+  const assetName = getAssetName();
+  const binaryName = getBinaryName();
+  const binDir = path.join(__dirname, 'bin');
+  const destPath = path.join(binDir, binaryName);
+  const url = `https://github.com/${REPO}/releases/download/v${VERSION}/${assetName}`;
+
+  console.log(`[meo-reduce-token] Downloading ${assetName} v${VERSION}...`);
+
+  fs.mkdirSync(binDir, { recursive: true });
+
+  const tempPath = `${destPath}.tmp`;
+  await download(url, tempPath);
+  fs.chmodSync(tempPath, 0o755);
+  fs.renameSync(tempPath, destPath);
+
+  console.log(`[meo-reduce-token] Installed ${binaryName} successfully.`);
 }
 
-install();
+install().catch((error) => {
+  console.error(`[meo-reduce-token] Installation failed: ${error.message}`);
+  console.error(`[meo-reduce-token] Manual install: https://github.com/${REPO}/releases/tag/v${VERSION}`);
+  process.exit(1);
+});

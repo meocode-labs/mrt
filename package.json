@@ -1,6 +1,6 @@
 {
   "name": "meo-reduce-token",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A powerful token reduction CLI tool for AI-assisted development by Meo Code Labs",
   "keywords": [
     "cli",
@@ -26,12 +26,16 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/meocodelabs/mrt.git"
+    "url": "git+https://github.com/meocode-labs/mrt.git"
   },
   "bugs": {
-    "url": "https://github.com/meocodelabs/mrt/issues"
+    "url": "https://github.com/meocode-labs/mrt/issues"
   },
-  "homepage": "https://github.com/meocodelabs/mrt#readme",
+  "homepage": "https://github.com/meocode-labs/mrt#readme",
+  "files": [
+    "install.js",
+    "README.md"
+  ],
   "main": "install.js",
   "bin": {
     "meo": "./bin/meo"

@@ -17,8 +17,8 @@ builds:
       - arm64
     ldflags:
       - -s -w
-      - -X github.com/meocodelabs/mrt/cmd.Version={{.Version}}
-      - -X github.com/meocamelabs/mrt/cmd.Commit={{.Commit}}
+      - -X github.com/meocode-labs/mrt/cmd.Version={{.Version}}
+      - -X github.com/meocode-labs/mrt/cmd.Commit={{.Commit}}
     flags:
       - -trimpath
 archives:

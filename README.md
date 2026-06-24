@@ -70,24 +70,24 @@ meo --help
 ### Installation via Homebrew
 
 ```bash
-brew install meocodelabs/tap/mrt
+brew install meocode-labs/tap/mrt
 ```
 
 ### Installation via cURL
 
 ```bash
 # macOS/Linux
-curl -fsSL https://raw.githubusercontent.com/meocodelabs/mrt/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/meocode-labs/mrt/main/install.sh | bash
 
 # Direct binary download
-curl -fsSL https://github.com/meocodelabs/mrt/releases/latest/download/mrt_darwin_arm64.tar.gz | tar -xz
+curl -fsSL https://github.com/meocode-labs/mrt/releases/latest/download/mrt_darwin_arm64.tar.gz | tar -xz
 sudo mv meo /usr/local/bin/
 ```
 
 ### Installation via Go
 
 ```bash
-go install github.com/meocodelabs/mrt@latest
+go install github.com/meocode-labs/mrt@latest
 ```
 
 ---
@@ -209,7 +209,7 @@ mrt/
 
 ```bash
 # Clone the repository
-git clone https://github.com/meocodelabs/mrt.git
+git clone https://github.com/meocode-labs/mrt.git
 cd mrt
 
 # Install dependencies
@@ -255,7 +255,7 @@ The NPM package is a thin wrapper that downloads the pre-compiled Go binary for 
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a [Pull Request](https://github.com/meocodelabs/mrt/pulls).
+Contributions are welcome! Please feel free to submit a [Pull Request](https://github.com/meocode-labs/mrt/pulls).
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)

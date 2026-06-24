@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/meocodelabs/mrt/cmd"
+	"github.com/meocode-labs/mrt/cmd"
 )
 
 func main() {
