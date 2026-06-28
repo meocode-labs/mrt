@@ -17,15 +17,16 @@ var (
 )
 
 var (
-	Version   = "1.0.0"
+	Version   = "1.3.0"
 	Commit    = "dev"
 	Year      = "2026"
 	MeoAuthor = "Meo Code Labs"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "meo",
-	Short: fmt.Sprintf("%s ✦ Meo Reduce Token (MRT)", boldStyle.Render("meo")),
+	Use:     "mrt",
+	Version: Version,
+	Short:   fmt.Sprintf("%s ✦ Meo Reduce Token (MRT)", boldStyle.Render("mrt")),
 	Long: `Meo Reduce Token (MRT) is a CLI tool that strips ANSI noise, dedupes
 repetitive log lines, and collapses verbose paths so terminal output
 costs fewer tokens when pasted into AI coding agents.
@@ -37,13 +38,13 @@ Supported targets:
   cursor        Cursor AI IDE                 (high compression, code syntax)
   default       Generic / balanced
 
-Type 'meo --help' for available commands.`,
+Type 'mrt --help' for available commands.`,
 	DisableAutoGenTag: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		printLogo(Version)
 		fmt.Println()
 		fmt.Printf("Developed by %s  |  meocode.com\n", infoStyle.Render(MeoAuthor))
-		fmt.Printf("Usage %s for available commands.\n\n", infoStyle.Render("meo --help"))
+		fmt.Printf("Usage %s for available commands.\n\n", infoStyle.Render("mrt --help"))
 	},
 }
 
@@ -57,11 +58,11 @@ const (
 // version string changes length.
 func printLogo(version string) {
 	bannerStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("212")).
-			Bold(true)
+		Foreground(lipgloss.Color("212")).
+		Bold(true)
 
 	subtitleStyle := lipgloss.NewStyle().
-			Foreground(lipgloss.Color("245"))
+		Foreground(lipgloss.Color("245"))
 
 	emptyRow := "║" + strings.Repeat(" ", bannerInnerWidth) + "║"
 	borderTop := "╔" + strings.Repeat("═", bannerInnerWidth) + "╗"

@@ -4,8 +4,9 @@ before:
   hooks:
     - go mod download
 builds:
-  - id: meo
+  - id: mrt
     main: ./main.go
+    binary: mrt
     env:
       - CGO_ENABLED=0
     goos:

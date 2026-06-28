@@ -126,7 +126,7 @@ jobs:
           fi
 
           {
-            echo "## meo-reduce-token (mrt) v${VERSION}"
+            echo "## mrt (Meo Reduce Token) v${VERSION}"
             echo ""
             echo "**Release date:** $(date -u '+%Y-%m-%d %H:%M UTC')"
             echo ""
@@ -142,7 +142,7 @@ jobs:
             echo ""
             echo '```bash'
             echo "# npm (cross-platform)"
-            echo "npm install -g meo-reduce-token"
+            echo "npm install -g mrt"
             echo ""
             echo "# Static binary"
             echo "chmod +x mrt_darwin_amd64 && ./mrt_darwin_amd64 --help"
@@ -191,7 +191,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ steps.version.outputs.TAG }}
-          name: meo-reduce-token v${{ steps.version.outputs.VERSION }}
+          name: mrt v${{ steps.version.outputs.VERSION }}
           body_path: release_notes.md
           draft: false
           prerelease: false

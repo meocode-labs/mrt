@@ -1,23 +1,23 @@
 # Homebrew formula for `mrt`
 
 This directory holds the Homebrew formula for [mrt](https://github.com/meocode-labs/mrt),
-exposed as the `meo` command. The formula lives in the mrt source repo (not a
-separate `homebrew-tap` repo) so the formula and the source it builds from
-share a single tag.
+exposed as the `mrt` command (renamed from `meo` in v1.3.0). The formula lives
+in the mrt source repo (not a separate `homebrew-tap` repo) so the formula and
+the source it builds from share a single tag.
 
 ## Install
 
 ```bash
-brew install --formula https://raw.githubusercontent.com/meocode-labs/mrt/main/homebrew-tap/Formula/mrt.rb
+brew install --formula https://raw.githubusercontent.com/meocode-labs/mrt/main/Formula/mrt.rb
 ```
 
 Homebrew downloads the source tarball for the release pinned in `url`, builds
-with `go build`, and installs the resulting `mrt` binary as `meo` into
+with `go build`, and installs the resulting `mrt` binary as `mrt` into
 Homebrew's `bin/`.
 
 ## Updating to a new release
 
-After tagging a new version (e.g. `v1.2.0`) and waiting for the auto-release
+After tagging a new version (e.g. `v1.3.0`) and waiting for the auto-release
 workflow to finish:
 
 1. Compute the SHA256 of the new source tarball:
@@ -33,7 +33,7 @@ workflow to finish:
 
 3. Commit and push:
    ```bash
-   git add homebrew-tap/Formula/mrt.rb
+   git add Formula/mrt.rb
    git commit -m "mrt: bump formula to vX.Y.Z"
    git push origin main
    ```

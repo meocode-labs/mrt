@@ -10,7 +10,7 @@ Developed by [Meo Code Labs](https://meocode.com) | Maintained by [penadidik](ht
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-212.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat-square&logo=go)](https://golang.org)
-[![npm](https://img.shields.io/badge/npm-v1.0.0-CB3837?style=flat-square&logo=npm)](https://www.npmjs.com/package/meo-reduce-token)
+[![npm](https://img.shields.io/badge/npm-v1.3.0-CB3837?style=flat-square&logo=npm)](https://www.npmjs.com/package/mrt)
 
 *Reduce terminal output noise. Save tokens. Code smarter.*
 
@@ -62,24 +62,24 @@ Developed by [Meo Code Labs](https://meocode.com) | Maintained by [penadidik](ht
 ## 🚀 Quick Start
 
 > ⚠️ **Only one installation method should be active at a time.** All four
-> install methods below produce a binary named `meo`, so the first one in
-> your `PATH` wins. If `meo target set opencode` says
+> install methods below produce a binary named `mrt`, so the first one in
+> your `PATH` wins. If `mrt target set opencode` says
 > `Unknown target: opencode`, you are probably running an older copy from
-> a different install method. Check with `which meo` and uninstall the
+> a different install method. Check with `which mrt` and uninstall the
 > other copy:
 >
 > ```bash
-> which meo                          # find the active binary
-> npm uninstall -g meo-reduce-token  # if it's the npm copy
+> which mrt                          # find the active binary
+> npm uninstall -g mrt               # if it's the npm copy
 > brew uninstall mrt                 # if it's the brew copy
-> rm ~/.local/bin/meo                # if it's the curl copy
+> rm ~/.local/bin/mrt                # if it's the curl copy
 > ```
 
 ### Installation via npm (Recommended)
 
 ```bash
-npm install -g meo-reduce-token
-meo --help
+npm install -g mrt
+mrt --help
 ```
 
 ### Installation via Homebrew
@@ -110,9 +110,7 @@ The installer script lives at [`install.sh`](install.sh) in this repo.
 ```bash
 go install github.com/meocode-labs/mrt@latest
 # go install names the binary after the module's last path component
-# (mrt), unlike the npm/curl/brew installs which name it meo. Rename
-# or symlink for a consistent experience:
-mv "$(go env GOPATH)/bin/mrt" "$(go env GOPATH)/bin/meo"
+# (mrt). In v1.3.0 this matches the npm/curl/brew install names.
 ```
 
 ---
@@ -122,42 +120,42 @@ mv "$(go env GOPATH)/bin/mrt" "$(go env GOPATH)/bin/meo"
 ### Initialize Shell Hook
 
 ```bash
-meo init
+mrt init
 # Restart your shell or: source ~/.bashrc
 ```
 
 ### Set Your AI Target
 
 ```bash
-meo target set cursor        # For Cursor AI
-meo target set claude-code   # For Claude Code
-meo target set copilot       # For GitHub Copilot
-meo target set opencode      # For OpenCode (opencode.io)
-meo target info              # Show current config
+mrt target set cursor        # For Cursor AI
+mrt target set claude-code   # For Claude Code
+mrt target set copilot       # For GitHub Copilot
+mrt target set opencode      # For OpenCode (opencode.io)
+mrt target info              # Show current config
 ```
 
 ### View Token Savings
 
 ```bash
-meo gain                     # Show session stats
-meo gain --live             # Live updating dashboard
-meo gain --since 24h        # Last 24 hours
+mrt gain                     # Show session stats
+mrt gain --live             # Live updating dashboard
+mrt gain --since 24h        # Last 24 hours
 ```
 
 ### Launch Dashboard
 
 ```bash
-meo dashboard                # Full TUI dashboard
-meo dashboard --compact      # Compact view
+mrt dashboard                # Full TUI dashboard
+mrt dashboard --compact      # Compact view
 ```
 
 ### Help
 
 ```bash
-meo --help                   # General help
-meo init --help              # Init options
-meo target --help            # Target management
-meo gain --help              # Gain command options
+mrt --help                   # General help
+mrt init --help              # Init options
+mrt target --help            # Target management
+mrt gain --help              # Gain command options
 ```
 
 ---
@@ -242,7 +240,7 @@ cd mrt
 go mod download
 
 # Build binary
-go build -o meo main.go
+go build -o mrt main.go
 
 # Run tests
 go test ./...
@@ -269,13 +267,70 @@ git push origin v1.0.0
 ## 📦 NPM Package Structure
 
 ```
-meo-reduce-token/
+mrt/
 ├── package.json      # NPM metadata & install script
 ├── install.js        # Platform-specific binary installer
+├── install.sh        # cURL installer (also bundled)
+├── bin/
+│   ├── mrt              # Fallback shim (replaced postinstall)
+│   └── install-runtime.js
 └── README.md
 ```
 
 The NPM package is a thin wrapper that downloads the pre-compiled Go binary for your platform on `npm install`.
+
+---
+
+## 🔄 Migration from v1.2.x
+
+**v1.3.0 renamed the CLI command from `meo` to `mrt`** to align the binary with the project name.
+Both `install.sh` and the npm postinstall print a migration notice when an old `meo` is detected.
+
+### Step-by-step
+
+```bash
+# 1. Install the new version (command is now `mrt`)
+npm install -g mrt          # or: curl ... install.sh | bash
+
+# 2. Remove the old `meo` binary
+#    Manual:
+rm "$(npm prefix -g)/bin/meo"          # npm global
+sudo rm /usr/local/bin/meo             # curl install
+brew uninstall mrt && brew install mrt # homebrew
+
+#    Or re-run install with auto-migration:
+MRT_AUTO_MIGRATE=1 npm install -g mrt
+
+# 3. Update any shell aliases
+sed -i '' 's/alias meo=/alias mrt=/g' ~/.zshrc ~/.bashrc 2>/dev/null
+source ~/.zshrc
+
+# 4. Verify
+mrt --version
+which mrt                    # should NOT return empty
+which meo                    # should return empty (or "not found")
+```
+
+### What changed
+
+| Before (v1.2.x)             | After (v1.3.0)              |
+|-----------------------------|-----------------------------|
+| `meo --help`                | `mrt --help`                |
+| `meo init`                  | `mrt init`                  |
+| `meo target set cursor`     | `mrt target set cursor`     |
+| `meo gain`                  | `mrt gain`                  |
+| `meo dashboard`             | `mrt dashboard`             |
+| `npm install -g meo-reduce-token` | `npm install -g mrt`   |
+| `which meo` → `/usr/local/bin/meo` | `which mrt` → `/usr/local/bin/mrt` |
+| Config at `~/.mrt/`         | Config at `~/.mrt/` (unchanged) |
+| Shell hook in `~/.zshrc`    | Shell hook in `~/.zshrc` (unchanged) |
+
+### What did NOT change
+
+- Config directory `~/.mrt/` is preserved (your `target`, `profiles`, etc. are intact).
+- Shell hook line written by `mrt init` (previously `meo init`) still works.
+- Homebrew tap name `meocode-labs/mrt` (unchanged).
+- Release tag format `vX.Y.Z` (unchanged).
 
 ---
 
