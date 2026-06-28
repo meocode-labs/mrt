@@ -23,9 +23,9 @@ var initCmd = &cobra.Command{
 	Short: "Initialize MRT shell integration",
 	Long: `Initialize MRT by hooking into your shell to intercept and compress
 terminal output. This enables transparent token reduction for all CLI commands.`,
-	Example: `  meo init                  # Interactive initialization
-  meo init --force         # Force re-initialization
-  meo init --shell bash    # Specify shell explicitly`,
+	Example: `  mrt init                  # Interactive initialization
+  mrt init --force         # Force re-initialization
+  mrt init --shell bash    # Specify shell explicitly`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		force, _ := cmd.Flags().GetBool("force")
 		shell, _ := cmd.Flags().GetString("shell")
@@ -130,7 +130,7 @@ func installBinary(shell string) {
 		binDir = "/usr/local/bin"
 	}
 
-	targetPath := binDir + "/meo"
+	targetPath := binDir + "/mrt"
 	if _, err := os.Stat(targetPath); err == nil && exe != targetPath {
 		fmt.Printf("%s MRT binary already exists at %s\n", successIcon, codeStyle.Render(targetPath))
 		return
@@ -152,12 +152,12 @@ var targetCmd = &cobra.Command{
 	Long: `Manage target-specific compression profiles for different AI tools.
 Targets allow you to tune compression parameters based on which AI agent
 is consuming your terminal output.`,
-	Example: `  meo target list              # List all targets
-  meo target set cursor         # Set target to Cursor
-  meo target set claude-code    # Set target to Claude Code
-  meo target set copilot        # Set target to GitHub Copilot
-  meo target set opencode       # Set target to OpenCode
-  meo target info               # Show current target info`,
+	Example: `  mrt target list              # List all targets
+  mrt target set cursor         # Set target to Cursor
+  mrt target set claude-code    # Set target to Claude Code
+  mrt target set copilot        # Set target to GitHub Copilot
+  mrt target set opencode       # Set target to OpenCode
+  mrt target info               # Show current target info`,
 }
 
 var targetListCmd = &cobra.Command{
@@ -271,9 +271,9 @@ var gainCmd = &cobra.Command{
 	Short: "Show token savings dashboard",
 	Long: `Display a beautiful real-time dashboard showing token savings,
 cost reductions, and compression statistics from your terminal session.`,
-	Example: `  meo gain              # Show current session stats
-  meo gain --live       # Enable live updating
-  meo gain --since 24h  # Show last 24 hours`,
+	Example: `  mrt gain              # Show current session stats
+  mrt gain --live       # Enable live updating
+  mrt gain --since 24h  # Show last 24 hours`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		live, _ := cmd.Flags().GetBool("live")
 		since, _ := cmd.Flags().GetString("since")
@@ -301,8 +301,8 @@ var dashboardCmd = &cobra.Command{
 	Short: "Open the MRT monitoring dashboard",
 	Long: `Launch an interactive TUI dashboard with live charts,
 token savings metrics, and compression visualizations.`,
-	Example: `  meo dashboard          # Launch dashboard
-  meo dashboard --compact   # Compact view`,
+	Example: `  mrt dashboard          # Launch dashboard
+  mrt dashboard --compact   # Compact view`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		compact, _ := cmd.Flags().GetBool("compact")
 		runDashboard(compact)

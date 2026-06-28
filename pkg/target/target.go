@@ -9,15 +9,15 @@ import (
 )
 
 type Profile struct {
-	Name              string
-	StripANSI         bool
-	RemoveDupLines    bool
-	CollapsePaths     bool
+	Name             string
+	StripANSI        bool
+	RemoveDupLines   bool
+	CollapsePaths    bool
 	Skeletonize      bool
-	CompressionLevel  float64
-	KeepReasoning     bool
-	KeepSuggestions   bool
-	KeepSyntax        bool
+	CompressionLevel float64
+	KeepReasoning    bool
+	KeepSuggestions  bool
+	KeepSyntax       bool
 }
 
 var Profiles = map[string]Profile{
