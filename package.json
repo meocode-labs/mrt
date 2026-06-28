@@ -1,7 +1,8 @@
 {
-  "name": "mrt",
+  "name": "meo-reduce-token",
   "version": "1.3.0",
-  "description": "A powerful token reduction CLI tool for AI-assisted development by Meo Code Labs",
+  "description": "Meo Reduce Token (MRT) — a powerful token reduction CLI for AI-assisted development by Meo Code Labs",
+  "deprecated": "The CLI command has been renamed from `meo` to `mrt` in v1.3.0. The npm package name stays `meo-reduce-token` for backward compatibility. After installing, use `mrt --help`. A future release will publish under a new scoped npm name.",
   "keywords": [
     "cli",
     "token",

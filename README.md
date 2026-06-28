@@ -70,7 +70,7 @@ Developed by [Meo Code Labs](https://meocode.com) | Maintained by [penadidik](ht
 >
 > ```bash
 > which mrt                          # find the active binary
-> npm uninstall -g mrt               # if it's the npm copy
+> npm uninstall -g meo-reduce-token  # if it's the npm copy
 > brew uninstall mrt                 # if it's the brew copy
 > rm ~/.local/bin/mrt                # if it's the curl copy
 > ```
