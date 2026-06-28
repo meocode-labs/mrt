@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# MRT — fallback shim. The real binary is downloaded by install.js (postinstall).
+# If this shim is invoked directly (e.g. via `npx mrt` before postinstall ran),
+# it tries to download the binary lazily. Most of the time, the postinstall
+# replaces this with the real `mrt` binary in npm's global bin dir.
+exec node "$(dirname "$0")/../install-runtime.js" "$@"
