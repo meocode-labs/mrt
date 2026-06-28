@@ -4,7 +4,7 @@ class Mrt < Formula
   url "https://github.com/meocode-labs/mrt/archive/refs/tags/v1.3.0.tar.gz"
   # SHA256 of the v1.3.0 source tarball. Update whenever `url` is bumped;
   # see Formula/README.md for the procedure.
-  sha256 "REPLACE_AT_RELEASE_TIME"
+  sha256 "67b43bdfd9069da2cd6dd15e1cd5e04ca6aee447692a2cbc4bdc0c05bfae495a"
   license "MIT"
 
   depends_on "go" => :build
