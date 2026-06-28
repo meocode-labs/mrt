@@ -10,10 +10,9 @@ import (
 )
 
 var (
-	successStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("10"))
-	errorStyle   = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
-	infoStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
-	boldStyle    = lipgloss.NewStyle().Bold(true)
+	errorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
+	infoStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("12"))
+	boldStyle  = lipgloss.NewStyle().Bold(true)
 )
 
 var (
